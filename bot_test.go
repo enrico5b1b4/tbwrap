@@ -125,7 +125,7 @@ func Test_TBWrap_SendMessageFromHandler(t *testing.T) {
 	assert.Contains(t, fakeTeleBot.OutboundSendMessages, "a message")
 }
 
-func NewTBWrapBot(tBot tbwrap.TeleBot) *tbwrap.TBWrapBot {
+func NewTBWrapBot(tBot tbwrap.TeleBot) *tbwrap.WrapBot {
 	bot, err := tbwrap.NewBot(tbwrap.Config{
 		TBot: tBot,
 	})

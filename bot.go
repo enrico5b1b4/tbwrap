@@ -6,8 +6,10 @@ package tbwrap
 import (
 	"fmt"
 	"log"
-	"regexp"
+
 	"time"
+
+	"regexp"
 
 	tb "gopkg.in/tucnak/telebot.v2"
 )
@@ -31,7 +33,7 @@ type Bot interface {
 	Send(to tb.Recipient, what interface{}, options ...interface{}) (*tb.Message, error)
 }
 
-type TBWrapBot struct {
+type WrapBot struct {
 	tBot   TeleBot
 	routes map[*regexp.Regexp]*Route
 }
@@ -42,15 +44,17 @@ type Config struct {
 	TBot         TeleBot
 }
 
-func NewBot(cfg Config) (*TBWrapBot, error) {
+var pollerTimeout = 15 * time.Second
+
+func NewBot(cfg Config) (*WrapBot, error) {
 	if cfg.TBot != nil {
-		return &TBWrapBot{
+		return &WrapBot{
 			tBot:   cfg.TBot,
 			routes: map[*regexp.Regexp]*Route{},
 		}, nil
 	}
 
-	poller := NewPollerWithAllowedChats(15*time.Second, cfg.AllowedChats)
+	poller := NewPollerWithAllowedChats(pollerTimeout, cfg.AllowedChats)
 	tBot, err := tb.NewBot(tb.Settings{
 		Token:  cfg.Token,
 		Poller: poller,
@@ -59,33 +63,33 @@ func NewBot(cfg Config) (*TBWrapBot, error) {
 		return nil, err
 	}
 
-	return &TBWrapBot{
+	return &WrapBot{
 		tBot:   tBot,
 		routes: map[*regexp.Regexp]*Route{},
 	}, nil
 }
 
-func (b *TBWrapBot) handle(endpoint interface{}, handler interface{}) {
+func (b *WrapBot) handle(endpoint, handler interface{}) {
 	b.tBot.Handle(endpoint, handler)
 }
 
-func (b *TBWrapBot) Respond(callback *tb.Callback, responseOptional ...*tb.CallbackResponse) error {
+func (b *WrapBot) Respond(callback *tb.Callback, responseOptional ...*tb.CallbackResponse) error {
 	return b.tBot.Respond(callback, responseOptional...)
 }
 
-func (b *TBWrapBot) Send(to tb.Recipient, what interface{}, options ...interface{}) (*tb.Message, error) {
+func (b *WrapBot) Send(to tb.Recipient, what interface{}, options ...interface{}) (*tb.Message, error) {
 	mergedOptions := append([]interface{}{&tb.SendOptions{ParseMode: tb.ModeMarkdown}}, options...)
 
 	return b.tBot.Send(to, what, mergedOptions...)
 }
 
-func (b *TBWrapBot) HandleRegExp(path string, handler HandlerFunc) {
+func (b *WrapBot) HandleRegExp(path string, handler HandlerFunc) {
 	compiledRegExp := regexp.MustCompile(path)
 
 	b.routes[compiledRegExp] = &Route{Path: compiledRegExp, Handler: handler}
 }
 
-func (b *TBWrapBot) HandleMultiRegExp(paths []string, handler HandlerFunc) {
+func (b *WrapBot) HandleMultiRegExp(paths []string, handler HandlerFunc) {
 	for i := range paths {
 		compiledRegExp := regexp.MustCompile(paths[i])
 
@@ -93,7 +97,7 @@ func (b *TBWrapBot) HandleMultiRegExp(paths []string, handler HandlerFunc) {
 	}
 }
 
-func (b *TBWrapBot) Handle(path string, handler HandlerFunc) {
+func (b *WrapBot) Handle(path string, handler HandlerFunc) {
 	b.handle(path, func(m *tb.Message) {
 		c := &context{chat: m.Chat, text: m.Text, chatID: int(m.Chat.ID), bot: b}
 		err := handler(c)
@@ -104,7 +108,7 @@ func (b *TBWrapBot) Handle(path string, handler HandlerFunc) {
 	})
 }
 
-func (b *TBWrapBot) HandleButton(path *tb.InlineButton, handler HandlerFunc) {
+func (b *WrapBot) HandleButton(path *tb.InlineButton, handler HandlerFunc) {
 	b.handle(path, func(callback *tb.Callback) {
 		c := &context{
 			chat:     callback.Message.Chat,
@@ -121,7 +125,7 @@ func (b *TBWrapBot) HandleButton(path *tb.InlineButton, handler HandlerFunc) {
 	})
 }
 
-func (b *TBWrapBot) handleOnText(text string, chat *tb.Chat) {
+func (b *WrapBot) handleOnText(text string, chat *tb.Chat) {
 	for regExpKey := range b.routes {
 		matches := regExpKey.FindStringSubmatch(text)
 		names := regExpKey.SubexpNames()
@@ -138,7 +142,7 @@ func (b *TBWrapBot) handleOnText(text string, chat *tb.Chat) {
 	}
 }
 
-func (b *TBWrapBot) Start() {
+func (b *WrapBot) Start() {
 	b.handle(tb.OnText, func(m *tb.Message) {
 		// all the text messages that weren't
 		// captured by existing handlers

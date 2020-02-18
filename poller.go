@@ -27,9 +27,9 @@ func NewPollerWithAllowedChats(pollTimout time.Duration, chats []int) *tb.Middle
 	})
 }
 
-func isInList(ID int, list []int) bool {
+func isInList(id int, list []int) bool {
 	for i := range list {
-		if list[i] == ID {
+		if list[i] == id {
 			return true
 		}
 	}

@@ -15,7 +15,7 @@ func NewTeleBot() *TeleBot {
 	}
 }
 
-func (t *TeleBot) Handle(endpoint interface{}, h interface{}) {
+func (t *TeleBot) Handle(endpoint, h interface{}) {
 	if handler, ok := h.(func(*tb.Message)); ok {
 		t.handler[endpoint.(string)] = handler
 		return
