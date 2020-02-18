@@ -152,7 +152,7 @@ func (b *WrapBot) Start() {
 	b.tBot.Start()
 }
 
-func mapSubexpNames(m, n      []string) map[string]string {
+func mapSubexpNames(m, n []string) map[string]string {
 	m, n = m[1:], n[1:]
 	r := make(map[string]string, len(m))
 	for i := range n {
