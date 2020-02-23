@@ -15,6 +15,7 @@ type Context interface {
 	ChatID() int
 	Text() string
 	Callback() *tb.Callback
+	Respond(callback *tb.Callback, response ...*tb.CallbackResponse) error
 	Send(msg string, options ...interface{}) error
 }
 
@@ -44,6 +45,10 @@ func (c *context) Text() string {
 
 func (c *context) Callback() *tb.Callback {
 	return c.callback
+}
+
+func (c *context) Respond(callback *tb.Callback, response ...*tb.CallbackResponse) error {
+	return c.bot.Respond(callback, response...)
 }
 
 func (c *context) Send(msg string, options ...interface{}) error {
