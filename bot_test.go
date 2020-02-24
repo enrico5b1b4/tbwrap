@@ -125,6 +125,23 @@ func Test_TBWrap_SendMessageFromHandler(t *testing.T) {
 	assert.Contains(t, fakeTeleBot.OutboundSendMessages, "a message")
 }
 
+func Test_TBWrap_OnlyCallsFirstMatchedHandler(t *testing.T) {
+	fakeTeleBot := fakes.NewTeleBot()
+	wrapBot := NewWrapBot(fakeTeleBot)
+	wrapBot.HandleRegExp(`\/test (?P<who>\w+)`, func(c tbwrap.Context) error {
+		return c.Send(`I matched with \/test (?P<who>\w+)`)
+	})
+	wrapBot.HandleRegExp(`\/test me`, func(c tbwrap.Context) error {
+		return c.Send(`I matched with \/test me`)
+	})
+	wrapBot.Start()
+
+	fakeTeleBot.SimulateIncomingMessageToChat(1, "/test me")
+
+	assert.Len(t, fakeTeleBot.OutboundSendMessages, 1)
+	assert.Equal(t, `I matched with \/test (?P<who>\w+)`, fakeTeleBot.OutboundSendMessages[0])
+}
+
 func NewWrapBot(tBot tbwrap.TeleBot) *tbwrap.WrapBot {
 	bot, err := tbwrap.NewBot(tbwrap.Config{
 		TBot: tBot,

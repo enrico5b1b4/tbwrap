@@ -138,6 +138,8 @@ func (b *WrapBot) handleOnText(text string, chat *tb.Chat) {
 				_ = c.Send(fmt.Sprintf("%s", err))
 				log.Println(err)
 			}
+
+			return
 		}
 	}
 }
