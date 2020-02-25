@@ -6,10 +6,8 @@ package tbwrap
 import (
 	"fmt"
 	"log"
-
-	"time"
-
 	"regexp"
+	"time"
 
 	tb "gopkg.in/tucnak/telebot.v2"
 )
@@ -35,7 +33,7 @@ type Bot interface {
 
 type WrapBot struct {
 	tBot   TeleBot
-	routes map[*regexp.Regexp]*Route
+	routes []*Route
 }
 
 type Config struct {
@@ -50,7 +48,7 @@ func NewBot(cfg Config) (*WrapBot, error) {
 	if cfg.TBot != nil {
 		return &WrapBot{
 			tBot:   cfg.TBot,
-			routes: map[*regexp.Regexp]*Route{},
+			routes: []*Route{},
 		}, nil
 	}
 
@@ -65,7 +63,7 @@ func NewBot(cfg Config) (*WrapBot, error) {
 
 	return &WrapBot{
 		tBot:   tBot,
-		routes: map[*regexp.Regexp]*Route{},
+		routes: []*Route{},
 	}, nil
 }
 
@@ -86,14 +84,14 @@ func (b *WrapBot) Send(to tb.Recipient, what interface{}, options ...interface{}
 func (b *WrapBot) HandleRegExp(path string, handler HandlerFunc) {
 	compiledRegExp := regexp.MustCompile(path)
 
-	b.routes[compiledRegExp] = &Route{Path: compiledRegExp, Handler: handler}
+	b.routes = append(b.routes, &Route{Path: compiledRegExp, Handler: handler})
 }
 
 func (b *WrapBot) HandleMultiRegExp(paths []string, handler HandlerFunc) {
 	for i := range paths {
 		compiledRegExp := regexp.MustCompile(paths[i])
 
-		b.routes[compiledRegExp] = &Route{Path: compiledRegExp, Handler: handler}
+		b.routes = append(b.routes, &Route{Path: compiledRegExp, Handler: handler})
 	}
 }
 
@@ -126,14 +124,14 @@ func (b *WrapBot) HandleButton(path *tb.InlineButton, handler HandlerFunc) {
 }
 
 func (b *WrapBot) handleOnText(text string, chat *tb.Chat) {
-	for regExpKey := range b.routes {
-		matches := regExpKey.FindStringSubmatch(text)
-		names := regExpKey.SubexpNames()
+	for i := range b.routes {
+		matches := b.routes[i].Path.FindStringSubmatch(text)
+		names := b.routes[i].Path.SubexpNames()
 
 		if len(matches) > 0 {
 			params := mapSubexpNames(matches, names)
-			c := &context{chat: chat, text: text, params: params, chatID: int(chat.ID), route: regExpKey, bot: b}
-			err := b.routes[regExpKey].Handler(c)
+			c := &context{chat: chat, text: text, params: params, chatID: int(chat.ID), route: b.routes[i].Path, bot: b}
+			err := b.routes[i].Handler(c)
 			if err != nil {
 				_ = c.Send(fmt.Sprintf("%s", err))
 				log.Println(err)
