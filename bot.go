@@ -97,7 +97,8 @@ func (b *WrapBot) HandleMultiRegExp(paths []string, handler HandlerFunc) {
 
 func (b *WrapBot) Handle(path string, handler HandlerFunc) {
 	b.handle(path, func(m *tb.Message) {
-		c := &context{chat: m.Chat, text: m.Text, chatID: int(m.Chat.ID), bot: b}
+		c := NewContext(b, m.Chat, m.Text, int(m.Chat.ID), nil, nil, nil)
+
 		err := handler(c)
 		if err != nil {
 			_ = c.Send(fmt.Sprintf("%s", err))
@@ -108,13 +109,16 @@ func (b *WrapBot) Handle(path string, handler HandlerFunc) {
 
 func (b *WrapBot) HandleButton(path *tb.InlineButton, handler HandlerFunc) {
 	b.handle(path, func(callback *tb.Callback) {
-		c := &context{
-			chat:     callback.Message.Chat,
-			text:     callback.Message.Text,
-			callback: callback,
-			chatID:   int(callback.Message.Chat.ID),
-			bot:      b,
-		}
+		c := NewContext(
+			b,
+			callback.Message.Chat,
+			callback.Message.Text,
+			int(callback.Message.Chat.ID),
+			callback,
+			nil,
+			nil,
+		)
+
 		err := handler(c)
 		if err != nil {
 			_ = c.Send(fmt.Sprintf("%s", err))
@@ -130,7 +134,7 @@ func (b *WrapBot) handleOnText(text string, chat *tb.Chat) {
 
 		if len(matches) > 0 {
 			params := mapSubexpNames(matches, names)
-			c := &context{chat: chat, text: text, params: params, chatID: int(chat.ID), route: b.routes[i].Path, bot: b}
+			c := NewContext(b, chat, text, int(chat.ID), nil, params, b.routes[i].Path)
 			err := b.routes[i].Handler(c)
 			if err != nil {
 				_ = c.Send(fmt.Sprintf("%s", err))

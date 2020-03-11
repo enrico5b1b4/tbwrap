@@ -29,6 +29,26 @@ type context struct {
 	route    *regexp.Regexp
 }
 
+func NewContext(
+	bot Bot,
+	chat *tb.Chat,
+	text string,
+	chatID int,
+	callback *tb.Callback,
+	params map[string]string,
+	route *regexp.Regexp,
+) Context {
+	return &context{
+		bot:      bot,
+		chat:     chat,
+		text:     text,
+		callback: callback,
+		chatID:   chatID,
+		route:    route,
+		params:   params,
+	}
+}
+
 func (c *context) Param(key string) string {
 	param := c.params[key]
 
