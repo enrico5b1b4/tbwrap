@@ -97,7 +97,7 @@ func (b *WrapBot) HandleMultiRegExp(paths []string, handler HandlerFunc) {
 
 func (b *WrapBot) Handle(path string, handler HandlerFunc) {
 	b.handle(path, func(m *tb.Message) {
-		c := NewContext(b, m.Chat, m.Text, int(m.Chat.ID), nil, nil)
+		c := NewContext(b, m.Chat, m.Text, nil, nil)
 		err := handler(c)
 		if err != nil {
 			_ = c.Send(fmt.Sprintf("%s", err))
@@ -112,7 +112,6 @@ func (b *WrapBot) HandleButton(path *tb.InlineButton, handler HandlerFunc) {
 			b,
 			callback.Message.Chat,
 			callback.Message.Text,
-			int(callback.Message.Chat.ID),
 			callback,
 			nil,
 		)
@@ -129,7 +128,7 @@ func (b *WrapBot) handleOnText(text string, chat *tb.Chat) {
 		matches := b.routes[i].Path.FindStringSubmatch(text)
 
 		if len(matches) > 0 {
-			c := NewContext(b, chat, text, int(chat.ID), nil, b.routes[i].Path)
+			c := NewContext(b, chat, text, nil, b.routes[i].Path)
 			err := b.routes[i].Handler(c)
 			if err != nil {
 				_ = c.Send(fmt.Sprintf("%s", err))

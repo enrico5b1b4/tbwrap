@@ -24,7 +24,6 @@ type context struct {
 	chat     *tb.Chat
 	text     string
 	callback *tb.Callback
-	chatID   int
 	params   map[string]string
 	route    *regexp.Regexp
 }
@@ -33,7 +32,6 @@ func NewContext(
 	bot Bot,
 	chat *tb.Chat,
 	text string,
-	chatID int,
 	callback *tb.Callback,
 	route *regexp.Regexp,
 ) Context {
@@ -49,7 +47,6 @@ func NewContext(
 		chat:     chat,
 		text:     text,
 		callback: callback,
-		chatID:   chatID,
 		route:    route,
 		params:   params,
 	}
@@ -62,7 +59,7 @@ func (c *context) Param(key string) string {
 }
 
 func (c *context) ChatID() int {
-	return c.chatID
+	return int(c.chat.ID)
 }
 
 func (c *context) Text() string {
