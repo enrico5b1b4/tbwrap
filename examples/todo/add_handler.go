@@ -10,7 +10,7 @@ type AddMessage struct {
 	Value string `regexpGroup:"value"`
 }
 
-func HandleAdd(todos map[int][]string) func(c tbwrap.Context) error {
+func HandleAdd(todos map[int64][]string) func(c tbwrap.Context) error {
 	return func(c tbwrap.Context) error {
 		message := new(AddMessage)
 		if err := c.Bind(message); err != nil {
@@ -19,6 +19,8 @@ func HandleAdd(todos map[int][]string) func(c tbwrap.Context) error {
 
 		todos[c.ChatID()] = append(todos[c.ChatID()], message.Value)
 
-		return c.Send(fmt.Sprintf(`"%s" has been added to your todo list`, message.Value))
+		_, err := c.Send(fmt.Sprintf(`"%s" has been added to your todo list`, message.Value))
+
+		return err
 	}
 }

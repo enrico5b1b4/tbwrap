@@ -1,6 +1,8 @@
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/enrico5b1b4/capture v0.0.0-20200207231845-eeb31f203f28 h1:yty4vD2nqMJ5W/SOhDmmLrj4/RVicVeJUw3yMRgdEyU=
 github.com/enrico5b1b4/capture v0.0.0-20200207231845-eeb31f203f28/go.mod h1:wj0tQe0FL+zGIwwYXB5g9xxBYJ430v01XArxEZzvWWk=
+github.com/enrico5b1b4/capture v0.0.1 h1:imCSEKYf8BJFFsB0fLi5RbewdjczmBO9C46zPyrDxPg=
+github.com/enrico5b1b4/capture v0.0.1/go.mod h1:wj0tQe0FL+zGIwwYXB5g9xxBYJ430v01XArxEZzvWWk=
 github.com/golang/mock v1.4.0/go.mod h1:UOMv5ysSaYNkG+OFQykRIcU/QvvxJf3p21QfJ2Bt3cw=
 github.com/pkg/errors v0.8.1 h1:iURUrRGxPUNPdy5/HRSm+Yj6okJ6UtLINN0Q9M4+h3I=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=

@@ -32,6 +32,8 @@ func HandleJoke() func(c tbwrap.Context) error {
 			return err
 		}
 
-		return c.Send(joke.Joke)
+		_, err = c.Send(joke.Joke)
+
+		return err
 	}
 }

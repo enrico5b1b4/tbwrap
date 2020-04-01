@@ -7,11 +7,13 @@ import (
 	"github.com/enrico5b1b4/tbwrap"
 )
 
-func HandleList(todos map[int][]string) func(c tbwrap.Context) error {
+func HandleList(todos map[int64][]string) func(c tbwrap.Context) error {
 	return func(c tbwrap.Context) error {
 		chatTodos := todos[c.ChatID()]
 		if len(chatTodos) == 0 {
-			return c.Send("your todo list is empty")
+			_, err := c.Send("your todo list is empty")
+
+			return err
 		}
 
 		t := template.Must(template.New("text").Parse(text))
@@ -20,7 +22,9 @@ func HandleList(todos map[int][]string) func(c tbwrap.Context) error {
 			return err
 		}
 
-		return c.Send(buf.String())
+		_, err := c.Send(buf.String())
+
+		return err
 	}
 }
 

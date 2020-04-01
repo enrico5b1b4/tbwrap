@@ -22,6 +22,8 @@ func HandleWeather(weatherService *WeatherService) func(c tbwrap.Context) error 
 			return err
 		}
 
-		return c.Send(fmt.Sprintf("%s %0.2f℃ (feels like %0.2f℃)", forecast.Icon, forecast.Temp, forecast.TempFeelsLike))
+		_, err = c.Send(fmt.Sprintf("%s %0.2f℃ (feels like %0.2f℃)", forecast.Icon, forecast.Temp, forecast.TempFeelsLike))
+
+		return err
 	}
 }

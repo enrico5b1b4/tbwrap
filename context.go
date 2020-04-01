@@ -12,17 +12,24 @@ import (
 type Context interface {
 	Param(key string) string
 	Bind(i interface{}) error
-	ChatID() int
+	Message() *tb.Message
+	ChatID() int64
 	Text() string
 	Callback() *tb.Callback
 	Respond(callback *tb.Callback, response ...*tb.CallbackResponse) error
-	Send(msg string, options ...interface{}) error
+	Send(msg string, options ...interface{}) (*tb.Message, error)
+	Delete(chatID int64, messageID int) error
+}
+
+type Bot interface {
+	Respond(callback *tb.Callback, responseOptional ...*tb.CallbackResponse) error
+	Send(to tb.Recipient, what interface{}, options ...interface{}) (*tb.Message, error)
+	Delete(chatID int64, messageID int) error
 }
 
 type context struct {
 	bot      Bot
-	chat     *tb.Chat
-	text     string
+	message  *tb.Message
 	callback *tb.Callback
 	params   map[string]string
 	route    *regexp.Regexp
@@ -30,22 +37,20 @@ type context struct {
 
 func NewContext(
 	bot Bot,
-	chat *tb.Chat,
-	text string,
+	message *tb.Message,
 	callback *tb.Callback,
 	route *regexp.Regexp,
 ) Context {
 	var params map[string]string
 	if route != nil {
-		matches := route.FindStringSubmatch(text)
+		matches := route.FindStringSubmatch(message.Text)
 		names := route.SubexpNames()
 		params = mapSubexpNames(matches, names)
 	}
 
 	return &context{
 		bot:      bot,
-		chat:     chat,
-		text:     text,
+		message:  message,
 		callback: callback,
 		route:    route,
 		params:   params,
@@ -58,12 +63,16 @@ func (c *context) Param(key string) string {
 	return param
 }
 
-func (c *context) ChatID() int {
-	return int(c.chat.ID)
+func (c *context) ChatID() int64 {
+	return c.message.Chat.ID
+}
+
+func (c *context) Message() *tb.Message {
+	return c.message
 }
 
 func (c *context) Text() string {
-	return c.text
+	return c.message.Text
 }
 
 func (c *context) Callback() *tb.Callback {
@@ -74,14 +83,18 @@ func (c *context) Respond(callback *tb.Callback, response ...*tb.CallbackRespons
 	return c.bot.Respond(callback, response...)
 }
 
-func (c *context) Send(msg string, options ...interface{}) error {
-	_, err := c.bot.Send(c.chat, msg, options...)
+func (c *context) Send(msg string, options ...interface{}) (*tb.Message, error) {
+	sentMsg, err := c.bot.Send(c.message.Chat, msg, options...)
 
-	return err
+	return sentMsg, err
 }
 
 func (c *context) Bind(i interface{}) error {
 	return capture.Parse(c.route.String(), c.Text(), i)
+}
+
+func (c *context) Delete(chatID int64, messageID int) error {
+	return c.bot.Delete(chatID, messageID)
 }
 
 func mapSubexpNames(m, n []string) map[string]string {

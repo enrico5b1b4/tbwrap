@@ -34,13 +34,17 @@ func (t *TeleBot) Send(to tb.Recipient, what interface{}, options ...interface{}
 	return nil, nil
 }
 
+func (t *TeleBot) Delete(message tb.Editable) error {
+	return nil
+}
+
 func (t *TeleBot) Start() {}
 
-func (t *TeleBot) SimulateIncomingMessageToChat(chatID int, text string) {
+func (t *TeleBot) SimulateIncomingMessageToChat(chatID int64, text string) {
 	if handler, ok := t.handler[text]; ok {
-		handler(&tb.Message{Text: text, Chat: &tb.Chat{ID: int64(chatID)}})
+		handler(&tb.Message{Text: text, Chat: &tb.Chat{ID: chatID}})
 		return
 	}
 
-	t.handler[tb.OnText](&tb.Message{Text: text, Chat: &tb.Chat{ID: 1}})
+	t.handler[tb.OnText](&tb.Message{Text: text, Chat: &tb.Chat{ID: chatID}})
 }

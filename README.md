@@ -38,7 +38,9 @@ func main() {
 	}
 
 	telegramBot.Handle(`/ping`, func(c tbwrap.Context) error {
-		return c.Send("pong!")
+		_, err := c.Send("pong!")
+
+		return err
 	})
 	telegramBot.Start()
 }
@@ -54,7 +56,9 @@ func main() {
 	// ...
 	telegramBot.Handle(`/ping`, func(c tbwrap.Context) error {
 		// ...
-		return c.Send("...")
+		_, err := c.Send("...")
+
+		return err
 	})
 	// ...
 }
@@ -68,7 +72,9 @@ func main() {
 	// ...
 	telegramBot.HandleRegExp(`\/greet (?P<name>.*)`, func(c tbwrap.Context) error {
 		// ...
-		return c.Send("...")
+		_, err := c.Send("...")
+
+		return err
     })
 	// ...
 }
@@ -84,7 +90,9 @@ func main() {
 		`\/welcome (?P<name>.*)`,
 	}, func(c tbwrap.Context) error {
 		// ...
-		return c.Send("...")
+		_, err := c.Send("...")
+
+		return err
     })
 	// ...
 }
@@ -100,7 +108,9 @@ func main() {
 		// ...
 		fmt.Println(c.Text()) // "/greet Enrico"
 
-		return c.Send("Hello!")
+		_, err := c.Send("Hello!")
+
+		return err
     })
 	// ...
 }
@@ -123,7 +133,9 @@ func main() {
 
 		fmt.Println(message.Name) // "Enrico"
 
-		return c.Send(fmt.Sprintf("Hello %s!", message.Name))
+		_, err := c.Send(fmt.Sprintf("Hello %s!", message.Name))
+
+		return err
     })
 	// ...
 }

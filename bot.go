@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"strconv"
 	"time"
 
 	tb "gopkg.in/tucnak/telebot.v2"
@@ -21,14 +22,10 @@ type Route struct {
 
 type TeleBot interface {
 	Handle(endpoint interface{}, handler interface{})
+	Delete(message tb.Editable) error
 	Respond(callback *tb.Callback, responseOptional ...*tb.CallbackResponse) error
 	Send(to tb.Recipient, what interface{}, options ...interface{}) (*tb.Message, error)
 	Start()
-}
-
-type Bot interface {
-	Respond(callback *tb.Callback, responseOptional ...*tb.CallbackResponse) error
-	Send(to tb.Recipient, what interface{}, options ...interface{}) (*tb.Message, error)
 }
 
 type WrapBot struct {
@@ -81,6 +78,22 @@ func (b *WrapBot) Send(to tb.Recipient, what interface{}, options ...interface{}
 	return b.tBot.Send(to, what, mergedOptions...)
 }
 
+type messageToDelete struct {
+	MessageID string
+	ChatID    int64
+}
+
+// nolint:gocritic
+func (m messageToDelete) MessageSig() (string, int64) {
+	return m.MessageID, m.ChatID
+}
+
+func (b *WrapBot) Delete(chatID int64, messageID int) error {
+	msgToDelete := messageToDelete{ChatID: chatID, MessageID: strconv.Itoa(messageID)}
+
+	return b.tBot.Delete(msgToDelete)
+}
+
 func (b *WrapBot) HandleRegExp(path string, handler HandlerFunc) {
 	compiledRegExp := regexp.MustCompile(path)
 
@@ -97,10 +110,10 @@ func (b *WrapBot) HandleMultiRegExp(paths []string, handler HandlerFunc) {
 
 func (b *WrapBot) Handle(path string, handler HandlerFunc) {
 	b.handle(path, func(m *tb.Message) {
-		c := NewContext(b, m.Chat, m.Text, nil, nil)
+		c := NewContext(b, m, nil, nil)
 		err := handler(c)
 		if err != nil {
-			_ = c.Send(fmt.Sprintf("%s", err))
+			_, _ = c.Send(fmt.Sprintf("%s", err))
 			log.Println(err)
 		}
 	})
@@ -110,28 +123,27 @@ func (b *WrapBot) HandleButton(path *tb.InlineButton, handler HandlerFunc) {
 	b.handle(path, func(callback *tb.Callback) {
 		c := NewContext(
 			b,
-			callback.Message.Chat,
-			callback.Message.Text,
+			callback.Message,
 			callback,
 			nil,
 		)
 		err := handler(c)
 		if err != nil {
-			_ = c.Send(fmt.Sprintf("%s", err))
+			_, _ = c.Send(fmt.Sprintf("%s", err))
 			log.Println(err)
 		}
 	})
 }
 
-func (b *WrapBot) handleOnText(text string, chat *tb.Chat) {
+func (b *WrapBot) handleOnText(m *tb.Message) {
 	for i := range b.routes {
-		matches := b.routes[i].Path.FindStringSubmatch(text)
+		matches := b.routes[i].Path.FindStringSubmatch(m.Text)
 
 		if len(matches) > 0 {
-			c := NewContext(b, chat, text, nil, b.routes[i].Path)
+			c := NewContext(b, m, nil, b.routes[i].Path)
 			err := b.routes[i].Handler(c)
 			if err != nil {
-				_ = c.Send(fmt.Sprintf("%s", err))
+				_, _ = c.Send(fmt.Sprintf("%s", err))
 				log.Println(err)
 			}
 
@@ -144,7 +156,7 @@ func (b *WrapBot) Start() {
 	b.handle(tb.OnText, func(m *tb.Message) {
 		// all the text messages that weren't
 		// captured by existing handlers
-		b.handleOnText(m.Text, m.Chat)
+		b.handleOnText(m)
 	})
 
 	b.tBot.Start()

@@ -18,12 +18,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	buttons := NewButtons()
 
-	telegramBot.Handle(`/ping`, func(c tbwrap.Context) error {
-		_, err := c.Send("pong!")
-
-		return err
-	})
+	telegramBot.Handle(`/show`, HandleShow(buttons))
+	telegramBot.HandleButton(buttons["CloseCommandBtn"], HandleCloseBtn(buttons))
 	telegramBot.Start()
 }
 

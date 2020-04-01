@@ -15,7 +15,7 @@ func Test_TBWrap_HandleSuccess(t *testing.T) {
 	wrapBot := NewWrapBot(fakeTeleBot)
 	wrapBot.Handle("/test", func(c tbwrap.Context) error {
 		assert.Equal(t, "/test", c.Text())
-		assert.Equal(t, 1, c.ChatID())
+		assert.Equal(t, int64(1), c.ChatID())
 
 		return nil
 	})
@@ -32,7 +32,7 @@ func Test_TBWrap_HandleError(t *testing.T) {
 	})
 	wrapBot.Start()
 
-	fakeTeleBot.SimulateIncomingMessageToChat(1, "/test")
+	fakeTeleBot.SimulateIncomingMessageToChat(int64(1), "/test")
 
 	assert.Contains(t, fakeTeleBot.OutboundSendMessages, "error")
 }
@@ -43,7 +43,7 @@ func Test_TBWrap_HandleRegExpSuccess(t *testing.T) {
 	wrapBot.HandleRegExp(`\/remind (?P<who>\w+)`, func(c tbwrap.Context) error {
 		assert.Equal(t, "/remind Bob", c.Text())
 		assert.Equal(t, "Bob", c.Param("who"))
-		assert.Equal(t, 1, c.ChatID())
+		assert.Equal(t, int64(1), c.ChatID())
 
 		return nil
 	})
@@ -70,7 +70,7 @@ func Test_TBWrap_HandleMultiRegExpSuccess(t *testing.T) {
 	wrapBot := NewWrapBot(fakeTeleBot)
 	wrapBot.HandleMultiRegExp([]string{`\/remind (?P<who>\w+)`, `\/tell (?P<who>\w+)`}, func(c tbwrap.Context) error {
 		assert.Equal(t, "Bob", c.Param("who"))
-		assert.Equal(t, 1, c.ChatID())
+		assert.Equal(t, int64(1), c.ChatID())
 
 		return nil
 	})
@@ -116,7 +116,9 @@ func Test_TBWrap_SendMessageFromHandler(t *testing.T) {
 	fakeTeleBot := fakes.NewTeleBot()
 	wrapBot := NewWrapBot(fakeTeleBot)
 	wrapBot.Handle("/test", func(c tbwrap.Context) error {
-		return c.Send("a message")
+		_, err := c.Send("a message")
+
+		return err
 	})
 	wrapBot.Start()
 
@@ -129,10 +131,14 @@ func Test_TBWrap_OnlyCallsFirstMatchedHandler(t *testing.T) {
 	fakeTeleBot := fakes.NewTeleBot()
 	wrapBot := NewWrapBot(fakeTeleBot)
 	wrapBot.HandleRegExp(`\/test (?P<who>\w+)`, func(c tbwrap.Context) error {
-		return c.Send(`I matched with \/test (?P<who>\w+)`)
+		_, err := c.Send(`I matched with \/test (?P<who>\w+)`)
+
+		return err
 	})
 	wrapBot.HandleRegExp(`\/test me`, func(c tbwrap.Context) error {
-		return c.Send(`I matched with \/test me`)
+		_, err := c.Send(`I matched with \/test me`)
+
+		return err
 	})
 	wrapBot.Start()
 

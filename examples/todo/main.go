@@ -23,7 +23,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	todos := make(map[int][]string)
+	todos := make(map[int64][]string)
 
 	telegramBot.Handle("/todo list", HandleList(todos))
 	telegramBot.HandleRegExp(`\/todo add (?P<value>.*)`, HandleAdd(todos))

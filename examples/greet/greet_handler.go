@@ -17,6 +17,8 @@ func HandleGreet() func(c tbwrap.Context) error {
 			return err
 		}
 
-		return c.Send(fmt.Sprintf("Hello %s!", message.Name))
+		_, err := c.Send(fmt.Sprintf("Hello %s!", message.Name))
+
+		return err
 	}
 }
